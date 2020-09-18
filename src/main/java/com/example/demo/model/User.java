@@ -9,8 +9,6 @@ import javax.validation.constraints.Size;
 public class User {
 
     @Id
-    @Size(min = 8, max = 30, message = "must be 8-30 chars")
-    @NotBlank
     private String username;
 
     private String pw;
