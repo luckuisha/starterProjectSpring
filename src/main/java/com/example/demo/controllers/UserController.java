@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -24,7 +25,10 @@ public class UserController {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody String username, @RequestBody String pw) {
+    public ResponseEntity register(@RequestBody @Valid User user) {
+
+        String username = user.getUsername();
+        String pw = user.getPw();
 
         if (!Pattern.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{10,18}$", pw)) {
             System.out.println("pw is bad");
@@ -36,12 +40,11 @@ public class UserController {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
 
-        if (userRepImpl.findByUsername(username).isPresent()) {
+        if (userRepImpl.findByUsername(user.getUsername()).isPresent()) {
             System.out.println("already exists");
             return new ResponseEntity(HttpStatus.CONFLICT);
         }
 
-        user = new User(username, pw);
         userRepImpl.save(user);
         System.out.println("success");
         return new ResponseEntity(HttpStatus.OK);
