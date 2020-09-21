@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 
 @RestController
 public class UserController {
-    private User user;
 
     @Autowired
     private UserRepoImpl userRepImpl;
@@ -30,6 +29,11 @@ public class UserController {
         String username = user.getUsername();
         String pw = user.getPw();
 
+        if (userRepImpl.findByUsername(username).isPresent()) {
+            System.out.println("already exists");
+            return new ResponseEntity(HttpStatus.CONFLICT);
+        }
+
         if (!Pattern.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{10,18}$", pw)) {
             System.out.println("pw is bad");
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -40,18 +44,17 @@ public class UserController {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
 
-        if (userRepImpl.findByUsername(user.getUsername()).isPresent()) {
-            System.out.println("already exists");
-            return new ResponseEntity(HttpStatus.CONFLICT);
-        }
+        User saveUser = new User(username, pw);
 
-        userRepImpl.save(user);
+        userRepImpl.save(saveUser);
         System.out.println("success");
         return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/login")
-    public ResponseEntity login(@RequestBody String username, @RequestBody String pw) {
+    public ResponseEntity login(@RequestBody User user) {
+        String username = user.getUsername();
+        String pw = user.getPw();
         Optional<User> currentUser = userRepImpl.findByUsername(username);
 
         if (currentUser.isPresent()) {
